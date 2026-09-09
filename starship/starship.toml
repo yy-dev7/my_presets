@@ -1,11 +1,11 @@
 "$schema" = 'https://starship.rs/config-schema.json'
+command_timeout = 1000
 
 format = """
 $directory\
 [](bg:yellow fg:peach)\
 $git_branch\
 $git_status\
-$git_metrics\
 [](fg:yellow bg:green)\
 $c\
 $rust\
@@ -81,10 +81,7 @@ style = "bg:yellow"
 format = '[[($all_status$ahead_behind )](fg:crust bg:yellow)]($style)'
 
 [git_metrics]
-disabled = false
-added_style = "fg:crust bg:yellow"
-deleted_style = "fg:crust bg:yellow"
-format = '[[+$added/-$deleted ](fg:crust bg:yellow)]($style)'
+disabled = true
 
 [nodejs]
 symbol = ""
@@ -112,6 +109,7 @@ style = "bg:green"
 format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
 
 [php]
+disabled = true
 symbol = ""
 style = "bg:green"
 format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
@@ -165,22 +163,22 @@ disabled = true
 
 [custom.duration]
 command = '''
-if test $STARSHIP_CMD_DURATION_MS -ge 3600000
-    set -l h (math "floor($STARSHIP_CMD_DURATION_MS / 3600000)")
-    set -l m (math "floor($STARSHIP_CMD_DURATION_MS % 3600000 / 60000)")
-    printf '%dh%dm' $h $m
-else if test $STARSHIP_CMD_DURATION_MS -ge 60000
-    set -l m (math "floor($STARSHIP_CMD_DURATION_MS / 60000)")
-    set -l s (math -s2 "($STARSHIP_CMD_DURATION_MS % 60000) / 1000")
-    printf '%dm%ss' $m $s
+ms=${STARSHIP_CMD_DURATION_MS:-0}
+if [ "$ms" -ge 3600000 ]; then
+    h=$((ms / 3600000))
+    m=$(((ms % 3600000) / 60000))
+    printf '%dh%dm' "$h" "$m"
+elif [ "$ms" -ge 60000 ]; then
+    m=$((ms / 60000))
+    awk -v ms="$ms" -v m="$m" 'BEGIN { printf "%dm%.2fs", m, (ms % 60000) / 1000 }'
 else
-    printf '%ss' (math -s2 "$STARSHIP_CMD_DURATION_MS / 1000")
-end
+    awk -v ms="$ms" 'BEGIN { printf "%.2fs", ms / 1000 }'
+fi
 '''
-when = 'test -n "$STARSHIP_CMD_DURATION_MS" -a "$STARSHIP_CMD_DURATION_MS" -gt 2000'
+when = 'test -n "$STARSHIP_CMD_DURATION_MS" && test "$STARSHIP_CMD_DURATION_MS" -gt 2000'
 format = "[](fg:surface1)[ 󱑇 $output ](bg:surface1 fg:subtext0)[](fg:surface1) "
 style = "bg:surface1 fg:subtext0"
-shell = ["fish"]
+shell = ["sh"]
 disabled = false
 
 [palettes.pastel_powerline]

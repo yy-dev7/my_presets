@@ -1,14 +1,18 @@
 # Shell
-command = /opt/homebrew/bin/fish
+command = /bin/zsh
 
-# Font - CJK: Sarasa Term SC, English/Symbols: JetBrainsMono Nerd Font Mono
-font-family = Sarasa Term SC
-font-size = 16
-adjust-cell-height = 15%
-font-codepoint-map = U+0000-U+024F=JetBrainsMono Nerd Font Mono
-font-codepoint-map = U+0300-U+036F=JetBrainsMono Nerd Font Mono
-font-codepoint-map = U+2000-U+206F=JetBrainsMono Nerd Font Mono
-font-codepoint-map = U+2100-U+214F=JetBrainsMono Nerd Font Mono
+# Font - English: JetBrains Mono, CJK: Sarasa Term SC, Symbols: JetBrainsMono Nerd Font Mono
+font-family = JetBrains Mono
+font-size = 14
+adjust-cell-height = 12%
+
+# CJK fallback
+font-codepoint-map = U+3000-U+303F=Sarasa Term SC
+font-codepoint-map = U+3400-U+4DBF=Sarasa Term SC
+font-codepoint-map = U+4E00-U+9FFF=Sarasa Term SC
+font-codepoint-map = U+F900-U+FAFF=Sarasa Term SC
+font-codepoint-map = U+FF00-U+FFEF=Sarasa Term SC
+
 # Nerd Font symbols
 font-codepoint-map = U+E000-U+F8FF=JetBrainsMono Nerd Font Mono
 font-codepoint-map = U+F0000-U+FFFFF=JetBrainsMono Nerd Font Mono

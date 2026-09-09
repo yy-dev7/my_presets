@@ -1,6 +1,10 @@
 # Ghosstty
 
-macOS 下基于 Ghostty 终端的完整开发环境配置，包含 Shell、提示符、编辑器配色等一站式方案。
+macOS 下的完整终端开发环境配置，包含终端、Shell、提示符、编辑器配色等一站式方案。
+
+> **默认终端为 [Supacode](https://supacode.app/)**，它内嵌 Ghostty 终端内核，额外提供 git worktree、tab、surface 与编码 Agent 的管理能力。Ghostty 作为备用终端保留，配置仍在 `ghostty/`。
+>
+> **Shell 为 zsh**。项目早期使用 fish，2026-09 迁回 zsh，fish 配置已从仓库移除，可从 git 历史找回。
 
 ## 预览
 
@@ -14,9 +18,10 @@ Pastel Powerline 风格提示符，支持 Git 状态、语言版本检测、命�
 
 | 组件 | 工具 | 版本 |
 |------|------|------|
-| 终端 | [Ghostty](https://ghostty.org/) | 1.3.1 |
+| 终端（默认） | [Supacode](https://supacode.app/) | 0.10.8 |
+| 终端（备用） | [Ghostty](https://ghostty.org/) | 1.3.1 |
 | 多路复用 | [Zellij](https://zellij.dev/) | 0.44.1 |
-| Shell | [Fish](https://fishshell.com/) | 4.5.0 |
+| Shell | [zsh](https://www.zsh.org/) + [oh-my-zsh](https://ohmyz.sh/) | 5.9 |
 | 提示符 | [Starship](https://starship.rs/) | 1.24.2 |
 | 文件查看 | [bat](https://github.com/sharkdp/bat) | 0.26.1 |
 | 文件列表 | [eza](https://github.com/eza-community/eza) | 0.23.4 |
@@ -34,14 +39,18 @@ Pastel Powerline 风格提示符，支持 Git 状态、语言版本检测、命�
 
 ```
 .
+├── supacode/
+│   └── settings.json       # Supacode 全局设置（已剔除本机仓库路径）
 ├── ghostty/
-│   └── config              # Ghostty 终端配置
+│   └── config              # Ghostty 终端配置（备用终端）
 ├── zellij/
 │   ├── config.kdl          # Zellij 多路复用器配置
-│   └── activate.fish       # Agent Teams tmux shim 的 Fish 激活脚本
-├── fish/
-│   ├── config.fish         # Fish Shell 配置
-│   └── fish_plugins        # Fisher 插件列表
+│   └── activate.sh         # Agent Teams tmux shim 的 POSIX 激活脚本
+├── zsh/
+│   ├── .zshrc              # zsh 交互式配置（插件、别名、函数、提示符）
+│   ├── .zshenv             # 所有 zsh 进程都需要的变量
+│   ├── .zprofile           # 登录期变量（brew shellenv、Toolbox、OrbStack）
+│   └── .zsh_custom_functions  # 自定义函数集
 ├── starship/
 │   └── starship.toml       # Starship 提示符配置
 ├── bat/
@@ -49,9 +58,8 @@ Pastel Powerline 风格提示符，支持 Git 状态、语言版本检测、命�
 ├── vim/
 │   └── catppuccin_mocha.vim # Catppuccin Mocha 配色方案
 └── claude-code/
-    ├── settings.json       # Claude Code 全局配置（合并到 ~/.claude/settings.json）
     └── hooks/
-        └── notify-on-long-task.sh  # 长任务完成通知脚本
+        └── notify-on-long-task.sh  # 长任务完成通知脚本（可选）
 ```
 
 ## 安装
@@ -59,8 +67,13 @@ Pastel Powerline 风格提示符，支持 Git 状态、语言版本检测、命�
 ### 1. 安装依赖
 
 ```bash
-brew install fish starship bat eza zoxide fzf lazygit fnm zellij
-brew install --cask ghostty
+brew install starship bat eza zoxide fzf lazygit fnm zellij direnv
+brew install --cask supacode ghostty
+
+# oh-my-zsh 及插件
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+git clone https://github.com/zsh-users/zsh-completions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-completions
 ```
 
 ### 2. 安装字体
@@ -79,9 +92,15 @@ cp ghostty/config ~/.config/ghostty/config
 mkdir -p ~/.config/zellij
 cp zellij/config.kdl ~/.config/zellij/config.kdl
 
-# Fish
-cp fish/config.fish ~/.config/fish/config.fish
-cp fish/fish_plugins ~/.config/fish/fish_plugins
+# Supacode（改完需重启应用）
+mkdir -p ~/.supacode
+cp supacode/settings.json ~/.supacode/settings.json
+
+# zsh
+cp zsh/.zshrc ~/.zshrc
+cp zsh/.zshenv ~/.zshenv
+cp zsh/.zprofile ~/.zprofile
+cp zsh/.zsh_custom_functions ~/.zsh_custom_functions
 
 # Starship
 cp starship/starship.toml ~/.config/starship.toml
@@ -96,30 +115,30 @@ mkdir -p ~/.vim/colors
 cp vim/catppuccin_mocha.vim ~/.vim/colors/catppuccin_mocha.vim
 ```
 
-### 4. 安装 Fish 插件
+### 4. 设置默认 Shell
+
+Supacode 和 Ghostty 都启动系统登录 shell，两者本身没有 shell 配置项。切换 shell 只能通过 `chsh`：
 
 ```bash
-# 安装 Fisher 插件管理器
-curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher
-
-# 根据 fish_plugins 安装所有插件
-fisher update
+chsh -s /bin/zsh          # 需要输入登录密码
+dscl . -read ~/ UserShell # 验证
 ```
 
-## Fish 插件说明
-
-| 插件 | 说明 |
-|------|------|
-| [jorgebucaran/fisher](https://github.com/jorgebucaran/fisher) | Fish 插件管理器 |
-| [jhillyerd/plugin-git](https://github.com/jhillyerd/plugin-git) | Git 缩写命令集 |
-| [patrickf1/fzf.fish](https://github.com/patrickf1/fzf.fish) | fzf 集成，Ctrl+R 搜索历史 |
-| [meaningful-ooo/sponge](https://github.com/meaningful-ooo/sponge) | 自动清理失败命令的历史记录 |
-| [jorgebucaran/autopair.fish](https://github.com/jorgebucaran/autopair.fish) | 自动配对括号和引号 |
-| [nickeb96/puffer-fish](https://github.com/nickeb96/puffer-fish) | `..` 自动展开为 `../..` |
-| [gazorby/fish-abbreviation-tips](https://github.com/gazorby/fish-abbreviation-tips) | 提示可用的缩写 |
-| [franciscolourenco/done](https://github.com/franciscolourenco/done) | 长时间命令结束后发送桌面通知 |
+改完重启终端应用即可生效。
 
 ## 配置说明
+
+### Supacode
+
+内嵌 Ghostty 终端内核，在其之上提供 git worktree 管理、tab / surface 编排与编码 Agent 集成。
+
+- **worktree 基目录**: 按仓库配置，例如 `<repo>/.worktrees/`
+- **默认编辑器**: Zed（`defaultEditorID`）
+- **PR 合并策略**: squash
+- **归档 worktree**: 7 天后自动删除
+- **CLI**: `supacode worktree|tab|surface|repo|settings`，Claude Code 中另有 `supacode-cli` skill 可直接驱动
+
+仓库内的 `supacode/settings.json` 只保留 `global` 段，本机仓库路径与远程主机地址已剔除，导入后需自行添加仓库。
 
 ### Ghostty
 
@@ -153,10 +172,10 @@ Vim 风格键位（`clear-defaults=true`），内置 tmux 兼容模式（`Ctrl+B
 git clone https://github.com/stanislc/zellij-claude-teams.git /tmp/zellij-claude-teams
 bash /tmp/zellij-claude-teams/install.sh
 
-# 部署 Fish 激活脚本（项目已包含）
-cp zellij/activate.fish ~/.local/share/zellij-tmux-shim/activate.fish
+# 部署激活脚本（项目已包含）
+cp zellij/activate.sh ~/.local/share/zellij-tmux-shim/activate.sh
 
-# fish/config.fish 中已包含自动激活逻辑，无需额外配置
+# zsh/.zshrc 开头已包含自动激活逻辑，无需额外配置
 ```
 
 ### Starship 提示符
@@ -173,42 +192,56 @@ cp zellij/activate.fish ~/.local/share/zellij-tmux-shim/activate.fish
 
 支持的语言检测: Node.js, Bun, Go, Rust, Python, C, PHP, Java, Kotlin, Haskell
 
-命令耗时使用自定义模块（`custom.duration`）实现，通过 Fish 的 `fish_postexec` 事件导出 `CMD_DURATION` 毫秒值，Starship 读取后智能格式化为 `Xs` / `Xm Xs` / `Xh Xm`，以灰色胶囊样式显示（仅命令耗时 > 2 秒时出现）。
+命令耗时使用自定义模块（`custom.duration`）实现，通过 zsh 的 `preexec` / `precmd` 钩子计算并导出 `STARSHIP_CMD_DURATION_MS`，Starship 读取后智能格式化为 `Xs` / `Xm Xs` / `Xh Xm`，以灰色胶囊样式显示（仅命令耗时 > 2 秒时出现）。
+
+由于使用 Starship，`.zshrc` 中的 `ZSH_THEME` 置空，避免 oh-my-zsh 主题被加载后又被覆盖。
 
 ### bat & Vim
 
 两者统一使用 **Catppuccin Mocha** 配色方案，确保 `bat` 查看文件和 `vi` 编辑文件时语法高亮风格一致。
 
-### Fish Shell 缩写
+### zsh 别名与函数
 
 ```
-cat  → bat          ls  → eza --icons    l   → eza --icons -la
-ll   → eza --icons -l   gg  → lazygit      cls → clear
+cat  → bat              ls  → eza --icons      l   → eza --icons -la
+ll   → eza --icons -l   gg  → lazygit          cls → clear
+python → python3        yolo → claude --dangerously-skip-permissions
 ```
+
+Git 缩写（`gcm` / `gcmsg` / `gpsup` / `ggf` 等）由 oh-my-zsh 的 `git` 插件提供。
+
+自定义函数集中在 `~/.zsh_custom_functions` 与 `.zshrc` 尾部：
+
+| 函数 | 说明 |
+|------|------|
+| `proxy_on` / `proxy_off` | 开关 Surge HTTP 代理（新 shell 默认开启） |
+| `claude` | 注入 `BROWSER` 与 PATH shim，链接走 RoxyBrowser |
+| `claude-sentry` | 按需加载 Sentry MCP 的 Claude Code |
+| `pi` | 强制用 fnm default 的 node 运行 pi（避开 multishell 劫持） |
+| `team_claude` / `unset_team_claude` | 切换 Claude Code 走 Vertex AI |
+| `claude_sync` | 在 `.claude` 与 `.claude-internal` 间同步会话记录 |
+| `gcml` | 对比当前主分支与 production 的提交差异 |
+| `delete_git_branch` | 按前缀批量删除本地/远程分支 |
+
+fzf 只保留 `Ctrl+R` 搜索历史，`Ctrl+T` 与 `Alt+C` 已解绑。
+
+> 注意：不要把 `GITHUB_TOKEN` 等凭据硬编码进 `.zshrc`，建议改用 `gh auth login` 或系统钥匙串。仓库内的副本已脱敏。
 
 ### Claude Code
 
-**全局配置**（`claude-code/settings.json`）包含：
+`~/.claude/settings.json` **不再纳入版本管理**。Supacode 会往其中写入自己托管的 hook（`# supacode-managed-hook`）来同步 Agent 状态到 UI，跟踪该文件只会与 Supacode 反复冲突。插件、模型、主题等也已改为直接在应用内配置。
 
-- **Agent Teams**: 启用实验性 Agent Teams（`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`），teammate 模式设为 `tmux`（在 Zellij 中由 shim 自动转译）
-- **插件**: claude-hud（状态栏）、LSP（Swift/Pyright/gopls/clangd）、skill-creator
-- **Hooks**: 长任务通知（> 3 分钟自动发送 macOS 桌面通知 + Glass 提示音）
-- **模型**: opus[1m]，始终启用深度思考
-
-**部署**：
+仓库只保留一个可选的独立脚本：长任务完成后（> 3 分钟）发送 macOS 桌面通知 + Glass 提示音。
 
 ```bash
-# 安装依赖
 brew install terminal-notifier
 
-# 复制通知脚本
 mkdir -p ~/.claude/hooks
 cp claude-code/hooks/notify-on-long-task.sh ~/.claude/hooks/
 chmod +x ~/.claude/hooks/notify-on-long-task.sh
-
-# 将 settings.json 合并到 ~/.claude/settings.json
-# 参考 claude-code/settings.json
 ```
+
+启用方式：在 `~/.claude/settings.json` 的 `hooks.Stop` 中追加一条 `~/.claude/hooks/notify-on-long-task.sh`，注意保留 Supacode 已有的条目。
 
 ## 许可
 

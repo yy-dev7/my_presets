@@ -1,0 +1,151 @@
+function gcml() {
+  # 检查是否存在 main 分支
+  if git show-ref --verify --quiet refs/heads/main; then
+    branch="main"
+  # 检查是否存在 master 分支
+  elif git show-ref --verify --quiet refs/heads/master; then
+    branch="master"
+  else
+    echo "Neither main nor master branch found."
+    return 1
+  fi
+  # 使用 git log 命令比较 branch 与 production 分支的差异,包含提交者名称和日期
+  git log --left-right --graph --cherry-mark --no-merges \
+    --format="%C(auto)%h%d %C(green)%ad%C(reset) %C(cyan)%an%C(reset) - %s" \
+    --date=format:'%Y-%m-%d %H:%M:%S' $branch...production
+}
+
+function delete_git_branch() {
+    if [ -z "$1" ]; then
+        echo "Usage: delete_git_branch <prefix> [remote]"
+        echo "prefix: The prefix of branch names to delete."
+        echo "remote: Optional. Specify any value (e.g., 'remote') to also delete remote branches."
+        return
+    fi
+
+    # 删除本地分支
+    git branch | grep "^  $1" | while read -r branch; do
+        echo "Deleting local branch: $branch"
+        git branch -D "${branch// /}"
+    done
+
+    # 检查是否也删除远程分支
+    if [ -n "$2" ]; then
+        git branch -r | grep "/$1" | while read -r branch; do
+            remote_branch=${branch#origin/}
+            echo "Deleting remote branch: $remote_branch"
+            git push origin --delete "$remote_branch"
+        done
+    fi
+}
+
+# 定义开启代理的函数
+function proxy_on() {
+    export http_proxy="http://127.0.0.1:6152"
+    export https_proxy="http://127.0.0.1:6152"
+    export HTTP_PROXY="http://127.0.0.1:6152"
+    export HTTPS_PROXY="http://127.0.0.1:6152"
+    echo "代理已开启"
+}
+
+# 定义关闭代理的函数
+function proxy_off() {
+    unset http_proxy
+    unset https_proxy
+    unset HTTP_PROXY
+    unset HTTPS_PROXY
+    echo "代理已关闭"
+}
+
+function team_claude() {
+    export CLAUDE_CODE_USE_VERTEX=1
+    export CLOUD_ML_REGION=us-east5
+    export ANTHROPIC_VERTEX_PROJECT_ID=tencent-gcp-sg-imur
+    export ANTHROPIC_MODEL='claude-opus-4-6@default'
+    echo "CLAUDE_CODE_USE_VERTEX"
+}
+
+function unset_team_claude() {
+    unset CLAUDE_CODE_USE_VERTEX
+    unset CLOUD_ML_REGION
+    unset ANTHROPIC_VERTEX_PROJECT_ID
+    unset ANTHROPIC_MODEL
+    echo "unset CLAUDE_CODE_USE_VERTEX"
+}
+
+claude_sync() {
+  local -a options=(".claude-internal  →  .claude（恢复到官方版）" ".claude  →  .claude-internal（恢复到内部版）")
+  local selected=0
+  local key i
+
+  tput civis
+
+  echo "请选择同步方向（↑/↓ 选择，Enter 确认，q 退出）："
+  for i in {1..${#options[@]}}; do
+    [[ $((i - 1)) -eq $selected ]] && echo "  ❯ ${options[$i]}" || echo "    ${options[$i]}"
+  done
+
+  while true; do
+    IFS= read -r -s -k1 key
+    if [[ $key == $'\x1b' ]]; then
+      read -r -s -k2 key
+      case "$key" in
+        '[A') (( selected > 0 )) && (( selected-- )) ;;
+        '[B') (( selected < ${#options[@]} - 1 )) && (( selected++ )) ;;
+      esac
+    elif [[ $key == $'\n' || $key == '' ]]; then
+      break
+    elif [[ $key == 'q' ]]; then
+      tput cnorm
+      echo ""
+      echo "已退出。"
+      return 0
+    fi
+
+    tput cuu ${#options[@]}
+    tput ed
+    for i in {1..${#options[@]}}; do
+      [[ $((i - 1)) -eq $selected ]] && echo "  ❯ ${options[$i]}" || echo "    ${options[$i]}"
+    done
+  done
+
+  tput cnorm
+  echo ""
+
+  case $selected in
+    0) local src_base=~/.claude-internal; local dst_base=~/.claude ;;
+    1) local src_base=~/.claude;          local dst_base=~/.claude-internal ;;
+  esac
+
+  echo "已选择：${options[$((selected + 1))]}"
+  echo ""
+
+  read "session_id?请输入 Session ID: "
+
+  if [[ -z "$session_id" ]]; then
+    echo "错误：Session ID 不能为空。"
+    return 1
+  fi
+
+  local src
+  src=$(find "${src_base}/projects" -name "${session_id}.jsonl" 2>/dev/null)
+
+  if [[ -z "$src" ]]; then
+    echo "错误：在 ${src_base}/projects 中未找到 ${session_id}.jsonl"
+    return 1
+  fi
+
+  local dest="${src/${src_base}/${dst_base}}"
+  mkdir -p "$(dirname "$dest")"
+  cp "$src" "$dest"
+  echo ""
+  echo "✅ 同步完成：$dest"
+  echo "▶  恢复命令：claude --resume $session_id"
+}
+
+php-cs-fixer () {
+    docker exec -t "php-nginx-fpm" /data/web/survey-admin/vendor/bin/php-cs-fixer fix --verbose --config=/data/web/survey-admin/.php-cs-fixer.dist.php $@
+}
+
+# 默认自动开启代理
+# proxy_on
