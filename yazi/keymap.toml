@@ -1,0 +1,17 @@
+# Enter 与 l 行为一致：进入子目录（h 返回上一级）
+[[mgr.prepend_keymap]]
+on   = "<Enter>"
+run  = "enter"
+desc = "Enter the child directory"
+
+# e：用 $EDITOR 打开选中/悬停的文件（阻塞，退出编辑器后回到 yazi）
+[[mgr.prepend_keymap]]
+on   = "e"
+run  = 'shell --block -- $EDITOR %s'
+desc = "Edit in $EDITOR"
+
+# T：预览栏最大化 / 还原
+[[mgr.prepend_keymap]]
+on   = "T"
+run  = "plugin toggle-pane max-preview"
+desc = "Maximize or restore the preview pane"

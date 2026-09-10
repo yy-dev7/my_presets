@@ -149,3 +149,13 @@ php-cs-fixer () {
 
 # 默认自动开启代理
 # proxy_on
+# yazi 包装函数：退出时把 shell 切到 yazi 中最后浏览的目录
+# 用 y 代替 yazi 启动；按 Q 退出则保持原目录不变
+y() {
+  local tmp cwd
+  tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
+  yazi "$@" --cwd-file="$tmp"
+  IFS= read -r -d '' cwd < "$tmp"
+  [ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
+  rm -f -- "$tmp"
+}

@@ -12,6 +12,8 @@
 - **平台**: macOS (Darwin, Apple Silicon)
 - **Shell**: zsh (`/bin/zsh`) + oh-my-zsh
 - **提示符**: [Starship](https://starship.rs/)
+- **文件管理**: yazi 26.9.1（`y` 函数启动，退出时切换目录）
+- **编辑器**: Neovim 0.12.5（`EDITOR` / `VISUAL`，`vi` `vim` 均别名到 `nvim`；SSH 会话回退系统 vim）
 - **历史**: zsh → fish → zsh（2026-09 迁回 zsh，fish 配置已从仓库移除，可从 git 历史找回）
 
 ## 配置文件位置
@@ -22,6 +24,7 @@
 - Zellij 配置: `~/.config/zellij/config.kdl`
 - Zellij tmux shim: `~/.local/share/zellij-tmux-shim/`（POSIX 激活脚本 `activate.sh`）
 - Starship 配置: `~/.config/starship.toml`
+- yazi 配置: `~/.config/yazi/keymap.toml`、`package.toml`（插件清单，`ya pkg install` 还原）
 
 ## 工作流程
 
@@ -34,6 +37,8 @@
 - 可通过 `ghostty +list-themes` / `ghostty +list-fonts` 查看可用主题与字体
 - Zellij 配置采用 KDL 格式，修改位于 `~/.config/zellij/config.kdl`
 - Starship 相关配置修改位于 `~/.config/starship.toml`
+- yazi 键位改 `~/.config/yazi/keymap.toml`，重启 yazi 生效；命令模板占位符是 `%s`（选中文件）/ `%h`（悬停文件），不是 `$@`
+- yazi 插件用 `ya pkg add|upgrade|install` 管理，版本锁在 `package.toml`
 
 ## 注意事项
 
@@ -44,4 +49,5 @@
 - Zellij 中运行 Claude Code 时，通过 tmux shim（zellij-claude-teams）实现 Agent Teams 自动分屏
 - zsh 启动时如果检测到 `$ZELLIJ` 环境变量，会自动 source `activate.sh` 激活 tmux shim
 - `~/.claude/settings.json` 不纳入版本管理：Supacode 会往里写入托管 hook（标记 `# supacode-managed-hook`）同步 Agent 状态，跟踪它只会反复冲突。仓库仅保留可选的 `claude-code/hooks/notify-on-long-task.sh`
+- yazi 覆盖了三个键：`Enter` 改为只进目录（默认的 `open` 会用 `$EDITOR` 把目录打开成 netrw），`e` 用 `$EDITOR` 编辑，`T` 由 toggle-pane 插件最大化预览栏
 - 敏感凭据（GITHUB_TOKEN 等）不要硬编码进 `~/.zshrc`，仓库内副本已脱敏

@@ -97,11 +97,14 @@ source ~/.zsh_custom_functions
 # export LANG=en_US.UTF-8
 
 # Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='nvim'
-# fi
+if [[ -n $SSH_CONNECTION ]]; then
+  export EDITOR='vim'
+else
+  export EDITOR='nvim'
+fi
+export VISUAL="$EDITOR"
+alias vi='nvim'
+alias vim='nvim'
 
 # Compilation flags
 # export ARCHFLAGS="-arch $(uname -m)"

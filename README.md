@@ -28,6 +28,8 @@ Pastel Powerline 风格提示符，支持 Git 状态、语言版本检测、命�
 | 目录跳转 | [zoxide](https://github.com/ajeetdsouza/zoxide) | 0.9.8 |
 | 模糊搜索 | [fzf](https://github.com/junegunn/fzf) | 0.70.0 |
 | Git TUI | [lazygit](https://github.com/jesseduffield/lazygit) | 0.60.0 |
+| 文件管理 | [yazi](https://yazi-rs.github.io/) | 26.9.1 |
+| 编辑器 | [Neovim](https://neovim.io/) | 0.12.5 |
 | Node 管理 | [fnm](https://github.com/Schniz/fnm) | - |
 
 ### 字体
@@ -55,6 +57,9 @@ Pastel Powerline 风格提示符，支持 Git 状态、语言版本检测、命�
 │   └── starship.toml       # Starship 提示符配置
 ├── bat/
 │   └── config              # bat 配置
+├── yazi/
+│   ├── keymap.toml         # yazi 键位覆盖（Enter/e/T）
+│   └── package.toml        # yazi 插件清单（toggle-pane）
 ├── vim/
 │   └── catppuccin_mocha.vim # Catppuccin Mocha 配色方案
 └── claude-code/
@@ -67,7 +72,7 @@ Pastel Powerline 风格提示符，支持 Git 状态、语言版本检测、命�
 ### 1. 安装依赖
 
 ```bash
-brew install starship bat eza zoxide fzf lazygit fnm zellij direnv
+brew install starship bat eza zoxide fzf lazygit fnm zellij direnv yazi neovim
 brew install --cask supacode ghostty
 
 # oh-my-zsh 及插件
@@ -108,6 +113,11 @@ cp starship/starship.toml ~/.config/starship.toml
 # bat
 mkdir -p ~/.config/bat
 cp bat/config ~/.config/bat/config
+
+# yazi（package.toml 记录插件版本，拷贝后执行 ya pkg install 拉取插件）
+mkdir -p ~/.config/yazi
+cp yazi/keymap.toml yazi/package.toml ~/.config/yazi/
+ya pkg install
 
 # Vim
 cp vim/.vimrc ~/.vimrc
@@ -200,6 +210,22 @@ cp zellij/activate.sh ~/.local/share/zellij-tmux-shim/activate.sh
 
 两者统一使用 **Catppuccin Mocha** 配色方案，确保 `bat` 查看文件和 `vi` 编辑文件时语法高亮风格一致。
 
+> `EDITOR` 现为 Neovim，`vi` / `vim` 均已别名到 `nvim`。Neovim 读的是 `~/.config/nvim/`，不会加载 `~/.vimrc` 与 `~/.vim/colors/`，所以上面那套 Vim 配色目前只在显式执行 `/usr/bin/vim` 时生效。SSH 会话仍走系统 vim。
+
+### yazi
+
+终端文件管理器，默认键位保持不变（`hjkl` 导航，`h` 回上级，`r` 重命名，`.` 显示隐藏文件，`z` 跳 zoxide，`S` 用 ripgrep 搜内容）。仓库只覆盖三处：
+
+| 键 | 行为 | 说明 |
+|----|------|------|
+| `Enter` | `enter` | 默认 Enter 是 `open`，对目录会调用 `$EDITOR` 打开成 netrw，改成与 `l` 一致只进目录 |
+| `e` | `shell --block -- $EDITOR %s` | 用 Neovim 编辑当前文件，退出后回到 yazi |
+| `T` | `plugin toggle-pane max-preview` | 预览栏最大化 / 还原，配合 `J` `K` 滚动看长文件 |
+
+注意占位符是 `%s`（选中文件）和 `%h`（悬停文件），不是 shell 的 `$@`。
+
+`~/.zsh_custom_functions` 里的 `y` 函数用 `--cwd-file` 把退出时的目录写回 shell，因此用 `y` 启动才能实现「退出 yazi 后停在浏览到的目录」；按 `Q` 退出则保持原目录。
+
 ### zsh 别名与函数
 
 ```
@@ -214,6 +240,7 @@ Git 缩写（`gcm` / `gcmsg` / `gpsup` / `ggf` 等）由 oh-my-zsh 的 `git` 插
 
 | 函数 | 说明 |
 |------|------|
+| `y` | 启动 yazi，退出时把 shell 切到最后浏览的目录 |
 | `proxy_on` / `proxy_off` | 开关 Surge HTTP 代理（新 shell 默认开启） |
 | `claude` | 注入 `BROWSER` 与 PATH shim，链接走 RoxyBrowser |
 | `claude-sentry` | 按需加载 Sentry MCP 的 Claude Code |
