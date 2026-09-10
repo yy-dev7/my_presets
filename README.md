@@ -61,7 +61,10 @@ Pastel Powerline 风格提示符，支持 Git 状态、语言版本检测、命�
 │   ├── keymap.toml         # yazi 键位覆盖（Enter/e/T）
 │   └── package.toml        # yazi 插件清单（toggle-pane）
 ├── vim/
+│   ├── .vimrc              # Vim 配置
 │   └── catppuccin_mocha.vim # Catppuccin Mocha 配色方案
+├── nvim/
+│   └── init.lua            # Neovim 配置（复用上面的配色文件）
 └── claude-code/
     └── hooks/
         └── notify-on-long-task.sh  # 长任务完成通知脚本（可选）
@@ -123,6 +126,10 @@ ya pkg install
 cp vim/.vimrc ~/.vimrc
 mkdir -p ~/.vim/colors
 cp vim/catppuccin_mocha.vim ~/.vim/colors/catppuccin_mocha.vim
+
+# Neovim（依赖上一步的 ~/.vim/colors/）
+mkdir -p ~/.config/nvim
+cp nvim/init.lua ~/.config/nvim/init.lua
 ```
 
 ### 4. 设置默认 Shell
@@ -206,11 +213,13 @@ cp zellij/activate.sh ~/.local/share/zellij-tmux-shim/activate.sh
 
 由于使用 Starship，`.zshrc` 中的 `ZSH_THEME` 置空，避免 oh-my-zsh 主题被加载后又被覆盖。
 
-### bat & Vim
+### bat & Vim & Neovim
 
-两者统一使用 **Catppuccin Mocha** 配色方案，确保 `bat` 查看文件和 `vi` 编辑文件时语法高亮风格一致。
+三者统一使用 **Catppuccin Mocha** 配色方案，确保 `bat` 查看文件和编辑文件时语法高亮风格一致。
 
-> `EDITOR` 现为 Neovim，`vi` / `vim` 均已别名到 `nvim`。Neovim 读的是 `~/.config/nvim/`，不会加载 `~/.vimrc` 与 `~/.vim/colors/`，所以上面那套 Vim 配色目前只在显式执行 `/usr/bin/vim` 时生效。SSH 会话仍走系统 vim。
+`EDITOR` 为 Neovim，`vi` / `vim` 均已别名到 `nvim`，SSH 会话仍走系统 vim。Neovim 读的是 `~/.config/nvim/init.lua`，不会加载 `~/.vimrc`，因此该文件把 `~/.vim` 追加进 `runtimepath`，直接复用 `~/.vim/colors/catppuccin_mocha.vim`，配色文件只需维护一份。
+
+`init.lua` 不依赖任何插件管理器，只对齐 `.vimrc` 的三个选项并补了一批常用默认值（行号、`expandtab` 2 空格、智能大小写搜索、`undofile`、系统剪贴板、鼠标、`scrolloff`），leader 键设为空格。需要 LSP、treesitter 时再引入 lazy.nvim。
 
 ### yazi
 

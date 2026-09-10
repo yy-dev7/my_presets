@@ -25,6 +25,7 @@
 - Zellij tmux shim: `~/.local/share/zellij-tmux-shim/`（POSIX 激活脚本 `activate.sh`）
 - Starship 配置: `~/.config/starship.toml`
 - yazi 配置: `~/.config/yazi/keymap.toml`、`package.toml`（插件清单，`ya pkg install` 还原）
+- Neovim 配置: `~/.config/nvim/init.lua`；Vim 配置: `~/.vimrc`、`~/.vim/colors/`
 
 ## 工作流程
 
@@ -39,6 +40,7 @@
 - Starship 相关配置修改位于 `~/.config/starship.toml`
 - yazi 键位改 `~/.config/yazi/keymap.toml`，重启 yazi 生效；命令模板占位符是 `%s`（选中文件）/ `%h`（悬停文件），不是 `$@`
 - yazi 插件用 `ya pkg add|upgrade|install` 管理，版本锁在 `package.toml`
+- Neovim 无插件管理器，`init.lua` 把 `~/.vim` 追加进 `runtimepath` 复用 Vim 的 Catppuccin 配色，配色只维护 `vim/catppuccin_mocha.vim` 一份
 
 ## 注意事项
 
