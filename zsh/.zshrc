@@ -131,6 +131,8 @@ alias php_docker="docker exec -it php-nginx-fpm bash"
 alias subl="'/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl'"
 alias python="python3"
 alias yolo="claude --dangerously-skip-permissions"
+# 工蜂 CLI（/usr/local/bin/gf）与 omz git 插件的 gf='git fetch' 冲突，取消别名；fetch 用 gfo 或 git fetch
+unalias gf 2>/dev/null
 
 # go
 export PATH="$PATH:$HOME/go/bin"

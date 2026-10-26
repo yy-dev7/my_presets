@@ -159,3 +159,33 @@ y() {
   [ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
   rm -f -- "$tmp"
 }
+
+# 工蜂 MR 总览：在 Prowl 工作区根目录（有 .prowl/workspace.json）并行列出每个成员仓库的 MR 与检查状态，
+# 不在工作区根目录时只看当前仓库。参数透传给 gf mr list，如 gfws -s all -L 5
+gfws() {
+  setopt local_options no_monitor no_notify
+  local root=$PWD tmp i dir
+  local -a names dirs
+  if [[ -f $root/.prowl/workspace.json ]]; then
+    while IFS=$'\t' read -r name dir; do
+      names+=("$name")
+      [[ $dir == /* ]] && dirs+=("$dir") || dirs+=("$root/$dir")
+    done < <(jq -r '.repositories[] | [(.name // .path), .path] | @tsv' "$root/.prowl/workspace.json")
+  else
+    names=("${root:t}") dirs=("$root")
+  fi
+  tmp=$(mktemp -d -t gfws)
+  for i in {1..$#dirs}; do
+    (cd "${dirs[$i]}" 2>/dev/null && command gf mr list --output json "$@" > "$tmp/$i" 2>/dev/null) &
+  done
+  wait
+  for i in {1..$#dirs}; do
+    print -P "%F{yellow}${names[$i]//\%/%%}%f"
+    if jq -e 'type == "array"' "$tmp/$i" > /dev/null 2>&1; then
+      jq -r '.[] | "  !\(.iid)\t\(if .check == "" then "-" else .check end)\t\(.state)\t\(.author)\t\(.title)"' "$tmp/$i"
+    else
+      print "  （无）"
+    fi
+  done
+  rm -rf "$tmp"
+}

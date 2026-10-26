@@ -15,6 +15,7 @@
 - **文件管理**: yazi 26.9.1（`y` 函数启动，退出时切换目录）
 - **编辑器**: Neovim 0.12.5（`EDITOR` / `VISUAL`，`vi` `vim` 均别名到 `nvim`；SSH 会话回退系统 vim）
 - **Diff 查看**: Hunk 0.24.1（Prowl 的 Diff Tool，`⌘⇧Y` 新开 tab 跑 `hunk diff`；git pager 仍是 delta）
+- **工蜂（git.woa.com）**: 工蜂 CLI `gf` 0.25.3（`/usr/local/bin/gf`，`gf auth login` 的凭据存在 `~/.netrc`）。omz git 插件的 `gf='git fetch'` 别名在 `.zshrc` 里 `unalias`，fetch 用 `gfo`；`gfws` 在 Prowl 工作区根目录并行列出各成员仓库的 MR 和检查状态。Prowl 的 PR 集成只认 GitHub，工蜂 MR 和 CI 状态靠 `gf`
 - **历史**: zsh → fish → zsh（2026-09 迁回 zsh，fish 配置已从仓库移除，可从 git 历史找回）；终端 Supacode → cmux → Prowl（2026-10：Supacode 0.11 和 cmux 都是「分屏里装 tab」，用户要的是「tab 里装分屏」。Supacode 配置已从仓库移除，可从 git 历史找回；cmux 配置没提交过，本机的也已删除）
 
 ## 配置文件位置
