@@ -1,0 +1,29 @@
+#!/bin/zsh -f
+# claude 包装：网页链接固定走 RoxyBrowser MER-4 / USA。
+# 放在 PATH 里排在真正的 claude 之前，手敲 claude、Prowl Agent Profile 的
+# `env … claude`、脚本调用都会经过这里（shell 函数挡不住 env 这类外部程序）。
+# BROWSER 适配新版 Claude Code；PATH shim 兼容内部调用 open 的旧路径。
+# 变量仅作用于 claude 进程，系统和其他终端命令仍使用 Chrome。
+# 自检: ~/.claude/shims/check
+
+shims=$HOME/.claude/shims
+self=${0:A}
+
+# 去掉自身目录和已有的 shims，再按 PATH 找下一个 claude，不写死绝对路径
+rest=()
+for d in $path; do
+    [[ ${d:A} == ${self:h} || ${d:A} == ${shims:A} ]] && continue
+    rest+=($d)
+done
+path=($rest)
+
+real=${commands[claude]}
+if [[ -z $real || ${real:A} == $self ]]; then
+    print -u2 "claude: PATH 里找不到真正的 claude（包装脚本 $self）"
+    exit 127
+fi
+
+export BROWSER=$shims/claude-browser
+path=($shims $path)
+# argv[0] 保持 claude，Prowl 靠它识别 agent
+exec -a claude $real "$@"

@@ -51,7 +51,7 @@
 - 系统 UserShell 是 zsh，切换 shell 走 `chsh`
 - 用户已安装 fnm (Fast Node Manager)，在 zsh 中通过 `eval "$(fnm env --use-on-cd --shell zsh)"` 加载
 - `pi` 命令被包成 shell 函数，强制使用 fnm default 的 node（fnm multishell 会劫持到旧版本 node）
-- `claude` 命令被包成 shell 函数，注入 `BROWSER` 与 PATH shim，使其打开的链接走 RoxyBrowser。函数用 `command claude` 走 PATH 查找，不要改成写死 claude 的绝对路径
+- `claude` 命令由包装脚本 `~/.claude/shims/bin/claude`（仓库 `claude-code/shims/bin/claude`）接管，注入 `BROWSER` 与 PATH shim，使其打开的链接走 RoxyBrowser。`.zshrc` 在 `~/.local/bin` 之后把 `~/.claude/shims/bin` prepend 到 PATH。不要改回 shell 函数：Prowl Agent Profile 用 `env … claude` 启动，会绕过函数。脚本去掉自身目录后按 PATH 找真正的 claude，不要改成写死绝对路径；`exec -a claude` 保持 argv[0]，Prowl 靠它识别 agent
 - Prowl 没有 Agent Teams 原生分屏；需要队友分屏时在 tab 里开 Zellij，走 tmux shim（zellij-claude-teams）
 - zsh 启动时如果检测到 `$ZELLIJ` 环境变量，会自动 source `activate.sh` 激活 tmux shim
 - 仓库里的 `prowl/settings.json` 只保留 `global` 段，`repositoryRoots` / `repositories` 置空；按仓库的设置和自定义命令（`~/.prowl/repo/…`）含本机路径，不进仓库

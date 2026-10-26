@@ -68,6 +68,8 @@ Pastel Powerline 风格提示符，支持 Git 状态、语言版本检测、命�
 ├── nvim/
 │   └── init.lua            # Neovim 配置（复用上面的配色文件）
 └── claude-code/
+    ├── shims/bin/
+    │   └── claude          # claude 包装脚本：链接走 RoxyBrowser
     └── hooks/
         └── notify-on-long-task.sh  # 长任务完成通知脚本（可选）
 ```
@@ -284,7 +286,6 @@ Git 缩写（`gcm` / `gcmsg` / `gpsup` / `ggf` 等）由 oh-my-zsh 的 `git` 插
 |------|------|
 | `y` | 启动 yazi，退出时把 shell 切到最后浏览的目录 |
 | `proxy_on` / `proxy_off` | 开关 Surge HTTP 代理（新 shell 默认开启） |
-| `claude` | 注入 `BROWSER` 与 PATH shim，链接走 RoxyBrowser |
 | `claude-sentry` | 按需加载 Sentry MCP 的 Claude Code |
 | `pi` | 强制用 fnm default 的 node 运行 pi（避开 multishell 劫持） |
 | `team_claude` / `unset_team_claude` | 切换 Claude Code 走 Vertex AI |
@@ -300,7 +301,16 @@ fzf 只保留 `Ctrl+R` 搜索历史，`Ctrl+T` 与 `Alt+C` 已解绑。
 
 `~/.claude/settings.json` **不纳入版本管理**。插件、模型、主题等都直接在应用内配置。Supacode 写入的托管 hook 和 skill（Claude Code、Codex、Pi 三处）已于 2026-10 清除；Prowl 也不写这个文件。
 
-仓库只保留一个可选的独立脚本：长任务完成后（> 3 分钟）发送 macOS 桌面通知 + Glass 提示音。
+**`claude` 包装脚本**：让 Claude Code 打开的链接走 RoxyBrowser。`.zshrc` 把 `~/.claude/shims/bin` 放到 PATH 最前，脚本进 claude 进程时注入 `BROWSER` 与 `open` shim，再 exec 真正的 claude。不用 shell 函数，是因为 Prowl Agent Profile 用 `env … claude` 启动，env 是外部程序，会绕过函数。脚本依赖的 `claude-browser`、`open` 含 RoxyBrowser 环境 ID，不进仓库。
+
+```bash
+mkdir -p ~/.claude/shims/bin
+cp claude-code/shims/bin/claude ~/.claude/shims/bin/
+chmod +x ~/.claude/shims/bin/claude
+~/.claude/shims/check   # 自检
+```
+
+另有一个可选的独立脚本：长任务完成后（> 3 分钟）发送 macOS 桌面通知 + Glass 提示音。
 
 ```bash
 brew install terminal-notifier

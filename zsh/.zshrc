@@ -193,14 +193,11 @@ alias ll='eza --icons -l'
 alias php_docker='docker exec -it -w /data/web/survey-admin php-nginx-fpm bash'
 
 # --- claude: 网页链接固定走 RoxyBrowser MER-4 / USA ---
-# BROWSER 适配新版 Claude Code；PATH shim 兼容内部调用 open 的旧路径。
-# 变量仅作用于 claude 进程，系统和其他终端命令仍使用 Chrome。
+# 包装脚本 ~/.claude/shims/bin/claude 排在 PATH 最前，进 claude 进程时注入
+# BROWSER 和 open shim。不用 shell 函数：Prowl Agent Profile 用 `env … claude`
+# 启动，env 是外部程序，会绕过函数。须在上面 ~/.local/bin 之后 prepend。
 # 自检: ~/.claude/shims/check
-claude() {
-    BROWSER="$HOME/.claude/shims/claude-browser" \
-    PATH="$HOME/.claude/shims:$PATH" \
-    command claude "$@"
-}
+export PATH="$HOME/.claude/shims/bin:$PATH"
 
 # --- claude-sentry: 按需加载 Sentry MCP ---
 claude-sentry() {
