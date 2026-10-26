@@ -6,7 +6,7 @@
 
 ## 环境信息
 
-- **终端（默认）**: [Supacode](https://supacode.app/) 0.10.8 —— 内嵌 Ghostty 终端内核，负责 worktree / tab / surface 管理
+- **终端（默认）**: [Prowl](https://github.com/onevcat/Prowl) 2026.10.21 —— Supacode 在 0.11 之前分出的 fork，Ghostty 内核，层级为 仓库 → worktree（侧边栏）→ tab（顶部）→ 分屏（tab 内）
 - **终端（备用）**: Ghostty 1.3.1 (stable)
 - **多路复用**: Zellij 0.44.1
 - **平台**: macOS (Darwin, Apple Silicon)
@@ -14,13 +14,13 @@
 - **提示符**: [Starship](https://starship.rs/)
 - **文件管理**: yazi 26.9.1（`y` 函数启动，退出时切换目录）
 - **编辑器**: Neovim 0.12.5（`EDITOR` / `VISUAL`，`vi` `vim` 均别名到 `nvim`；SSH 会话回退系统 vim）
-- **历史**: zsh → fish → zsh（2026-09 迁回 zsh，fish 配置已从仓库移除，可从 git 历史找回）
+- **历史**: zsh → fish → zsh（2026-09 迁回 zsh，fish 配置已从仓库移除，可从 git 历史找回）；终端 Supacode → cmux → Prowl（2026-10：Supacode 0.11 和 cmux 都是「分屏里装 tab」，用户要的是「tab 里装分屏」。Supacode 配置已从仓库移除，可从 git 历史找回；cmux 配置没提交过，本机的也已删除）
 
 ## 配置文件位置
 
-- Supacode 配置: `~/.supacode/settings.json`（另有 `layouts.json`、`sidebar.json`）
+- Prowl 配置: `~/.prowl/settings.json`（全局 + 仓库列表）、`~/.prowl/global.user.json`（全局自定义命令、Agent Profiles）、`~/.prowl/repo/<目录名>-<路径 SHA-256 前 8 位>/prowl.json` 与 `prowl.user.json`（按仓库设置、按仓库自定义命令）
 - zsh 配置: `~/.zshrc`、`~/.zshenv`、`~/.zprofile`、`~/.zsh_custom_functions`
-- Ghostty 配置: `~/.config/ghostty/config`
+- Ghostty 配置: `~/.config/ghostty/config`（Prowl 也读取：字体、配色、分屏键位、`command`）
 - Zellij 配置: `~/.config/zellij/config.kdl`
 - Zellij tmux shim: `~/.local/share/zellij-tmux-shim/`（POSIX 激活脚本 `activate.sh`）
 - Starship 配置: `~/.config/starship.toml`
@@ -31,8 +31,10 @@
 
 - Shell 配置修改目标文件为 `~/.zshrc`；函数集中在 `~/.zsh_custom_functions`
 - 登录期变量（PATH 基线、brew shellenv）放 `~/.zprofile`，非交互也需要的放 `~/.zshenv`
-- Supacode 配置为 JSON，改完需重启应用生效；也可用 `supacode settings` 打开设置界面
-- Supacode CLI 可用 `supacode worktree|tab|surface|repo` 管理会话，详见 `supacode-cli` skill
+- Prowl 运行时手改 JSON 可能被它覆盖：优先用设置界面（`⌘,`），手改先退出 Prowl。`global` 里只有 `appearanceMode`、`updatesAutomaticallyCheckForUpdates`、`updatesAutomaticallyDownloadUpdates` 三个必填字段，其余缺省时用默认值
+- Prowl 字段说明在官方文档 `docs/reference/settings-fields.md`，快捷键在 `docs/reference/keyboard-shortcuts.md`；也可让 Prowl 内的 Help → Ask Agent About Prowl 给出文档
+- Prowl CLI 在 `/Applications/Prowl.app/Contents/Resources/prowl-cli/prowl`（未装到 PATH），`prowl list` 只列出开着终端的 worktree
+- 分屏键位（`new_split`、`equalize_splits`、`goto_split`）来自 Ghostty 配置；与 Prowl 应用快捷键冲突的 Ghostty 键会被 Prowl 自动解绑
 - Ghostty 配置采用 key-value 格式，每行一个配置项
 - 可通过 `ghostty +show-config` 查看当前生效配置
 - 可通过 `ghostty +list-themes` / `ghostty +list-fonts` 查看可用主题与字体
@@ -44,12 +46,15 @@
 
 ## 注意事项
 
-- **Supacode 没有 shell 配置项**：它启动的是系统登录 shell（passwd 中的 UserShell，即 `chsh -s` 设定的值）。切换 shell 必须走 `chsh`，改 Supacode 或 Ghostty 的配置都不影响 Supacode 的终端
+- **用户的核心要求是「tab 里装分屏」**：一个项目对应多个顶部 tab，每个 tab 有独立的分屏，切 tab 才显示该 tab 的分屏。这是从 Supacode 0.11、cmux 换到 Prowl 的原因，选终端或改配置时不能破坏这一点
+- tab 名来自终端标题，由 `.zshrc` 在 omz 加载后覆盖 `ZSH_THEME_TERM_TITLE_IDLE` / `ZSH_THEME_TERM_TAB_TITLE_IDLE` 为 `%1~`（当前目录名）
+- 系统 UserShell 是 zsh，切换 shell 走 `chsh`
 - 用户已安装 fnm (Fast Node Manager)，在 zsh 中通过 `eval "$(fnm env --use-on-cd --shell zsh)"` 加载
 - `pi` 命令被包成 shell 函数，强制使用 fnm default 的 node（fnm multishell 会劫持到旧版本 node）
-- `claude` 命令被包成 shell 函数，注入 `BROWSER` 与 PATH shim，使其打开的链接走 RoxyBrowser
-- Zellij 中运行 Claude Code 时，通过 tmux shim（zellij-claude-teams）实现 Agent Teams 自动分屏
+- `claude` 命令被包成 shell 函数，注入 `BROWSER` 与 PATH shim，使其打开的链接走 RoxyBrowser。函数用 `command claude` 走 PATH 查找，不要改成写死 claude 的绝对路径
+- Prowl 没有 Agent Teams 原生分屏；需要队友分屏时在 tab 里开 Zellij，走 tmux shim（zellij-claude-teams）
 - zsh 启动时如果检测到 `$ZELLIJ` 环境变量，会自动 source `activate.sh` 激活 tmux shim
-- `~/.claude/settings.json` 不纳入版本管理：Supacode 会往里写入托管 hook（标记 `# supacode-managed-hook`）同步 Agent 状态，跟踪它只会反复冲突。仓库仅保留可选的 `claude-code/hooks/notify-on-long-task.sh`
+- 仓库里的 `prowl/settings.json` 只保留 `global` 段，`repositoryRoots` / `repositories` 置空；按仓库的设置和自定义命令（`~/.prowl/repo/…`）含本机路径，不进仓库
+- `~/.claude/settings.json` 不纳入版本管理。Supacode 的托管 hook 和 skill（`~/.claude`、`~/.codex`、`~/.pi/agent` 三处）已于 2026-10 清除；Prowl 也不写这个文件（Agent Profile 启动时用 `--settings` 临时注入 hook，手动敲 `claude` 靠进程和屏幕识别状态）。仓库仅保留可选的 `claude-code/hooks/notify-on-long-task.sh`
 - yazi 覆盖了三个键：`Enter` 改为只进目录（默认的 `open` 会用 `$EDITOR` 把目录打开成 netrw），`e` 用 `$EDITOR` 编辑，`T` 由 toggle-pane 插件最大化预览栏
 - 敏感凭据（GITHUB_TOKEN 等）不要硬编码进 `~/.zshrc`，仓库内副本已脱敏

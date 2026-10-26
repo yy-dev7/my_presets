@@ -89,6 +89,11 @@ plugins=(git sudo zoxide zsh-autosuggestions direnv)
 source $ZSH/oh-my-zsh.sh
 source ~/.zsh_custom_functions
 
+# 终端标题（Prowl / Ghostty 的 tab 名）：空闲时显示当前目录名，替换 omz 默认的 user@host:路径；
+# 执行命令时 omz 会换成命令名，Claude Code 会换成自己的任务标题。必须放在 omz 加载之后。
+ZSH_THEME_TERM_TITLE_IDLE="%1~"
+ZSH_THEME_TERM_TAB_TITLE_IDLE="%1~"
+
 # User configuration
 
 # export MANPATH="/usr/local/man:$MANPATH"

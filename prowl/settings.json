@@ -1,0 +1,65 @@
+{
+  "global": {
+    "agentIslandDisplayPreference": {
+      "mode": "automatic"
+    },
+    "agentIslandEnabled": false,
+    "agentIslandFloatingPositions": {
+      "positionsByDisplayID": {}
+    },
+    "agentIslandOnlyShowWithAgents": false,
+    "agentIslandSilentOpacity": 0.35,
+    "analyticsEnabled": false,
+    "appearanceMode": "system",
+    "archivedAutoDeletePeriod": 3,
+    "autoShowActiveAgentsPanel": false,
+    "canvasDefaultLayout": "tile",
+    "commandFinishedNotificationEnabled": true,
+    "commandFinishedNotificationThreshold": 10,
+    "confirmBeforeQuit": true,
+    "copyIgnoredOnWorktreeCreate": false,
+    "copyUntrackedOnWorktreeCreate": false,
+    "crashReportsEnabled": false,
+    "defaultEditorID": "zed",
+    "defaultViewMode": "normal",
+    "deleteBranchOnAutomaticCleanup": false,
+    "detectRepositoryIconsAutomatically": true,
+    "dimUnfocusedSplits": true,
+    "dockBounceMode": "off",
+    "externalDiffCustomCommand": "",
+    "externalDiffToolID": "built-in",
+    "fetchOriginBeforeWorktreeCreation": true,
+    "githubIntegrationEnabled": true,
+    "inAppNotificationsEnabled": true,
+    "keybindingUserOverrides": {
+      "overrides": {},
+      "version": 1
+    },
+    "moveNotifiedWorktreeToTop": false,
+    "muteNotificationsForActiveSurface": true,
+    "notificationSound": "hero",
+    "promptForWorktreeCreation": true,
+    "pullRequestMergeStrategy": "squash",
+    "remoteAgentDetection": "undecided",
+    "restoreTerminalLayoutOnLaunch": true,
+    "shelfSpineTintFallback": "neutral",
+    "shelfSpineTintFollowsRepositoryColor": true,
+    "showActiveAgentStatusInShelf": true,
+    "showActiveAgentTabTitles": false,
+    "showDefaultEditorInToolbar": true,
+    "showNotificationDotOnDock": false,
+    "showRunButtonInToolbar": true,
+    "systemNotificationsEnabled": true,
+    "updatesAutomaticallyCheckForUpdates": true,
+    "updatesAutomaticallyDownloadUpdates": false,
+    "windowTintCustomColor": {
+      "blue": 1,
+      "green": 0.5333333611488342,
+      "red": 0
+    },
+    "windowTintMode": "repositoryColor"
+  },
+  "pinnedWorktreeIDs": [],
+  "repositories": {},
+  "repositoryRoots": []
+}

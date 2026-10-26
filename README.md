@@ -2,9 +2,11 @@
 
 macOS 下的完整终端开发环境配置，包含终端、Shell、提示符、编辑器配色等一站式方案。
 
-> **默认终端为 [Supacode](https://supacode.app/)**，它内嵌 Ghostty 终端内核，额外提供 git worktree、tab、surface 与编码 Agent 的管理能力。Ghostty 作为备用终端保留，配置仍在 `ghostty/`。
+> **默认终端为 [Prowl](https://prowl.onev.cat/)**，Supacode 在 0.11 改布局之前分出来的 fork：侧边栏是仓库和 worktree，顶部是 tab，每个 tab 有自己的分屏；原生 Ghostty 内核，直接读取 `ghostty/config`。Ghostty 作为备用终端保留。
 >
 > **Shell 为 zsh**。项目早期使用 fish，2026-09 迁回 zsh，fish 配置已从仓库移除，可从 git 历史找回。
+>
+> **2026-10 终端几经更换：Supacode → cmux → Prowl**。Supacode 0.11 把布局改成「分屏里装 tab」，不再支持「tab 里装分屏」；cmux 也是「分屏里装 tab」（顶部 tab 各自拥有分屏的需求见 cmux #1362，尚未实现），于是换成保留旧结构的 Prowl。Supacode 配置已从仓库移除，可从 git 历史找回；cmux 配置没有提交过。
 
 ## 预览
 
@@ -18,7 +20,7 @@ Pastel Powerline 风格提示符，支持 Git 状态、语言版本检测、命�
 
 | 组件 | 工具 | 版本 |
 |------|------|------|
-| 终端（默认） | [Supacode](https://supacode.app/) | 0.10.8 |
+| 终端（默认） | [Prowl](https://github.com/onevcat/Prowl) | 2026.10.21 |
 | 终端（备用） | [Ghostty](https://ghostty.org/) | 1.3.1 |
 | 多路复用 | [Zellij](https://zellij.dev/) | 0.44.1 |
 | Shell | [zsh](https://www.zsh.org/) + [oh-my-zsh](https://ohmyz.sh/) | 5.9 |
@@ -41,10 +43,10 @@ Pastel Powerline 风格提示符，支持 Git 状态、语言版本检测、命�
 
 ```
 .
-├── supacode/
-│   └── settings.json       # Supacode 全局设置（已剔除本机仓库路径）
+├── prowl/
+│   └── settings.json       # Prowl 全局设置（只保留 global 段，已剔除本机仓库路径）
 ├── ghostty/
-│   └── config              # Ghostty 终端配置（备用终端）
+│   └── config              # Ghostty 配置（Prowl 也读取它：字体、配色、分屏键位）
 ├── zellij/
 │   ├── config.kdl          # Zellij 多路复用器配置
 │   └── activate.sh         # Agent Teams tmux shim 的 POSIX 激活脚本
@@ -76,7 +78,8 @@ Pastel Powerline 风格提示符，支持 Git 状态、语言版本检测、命�
 
 ```bash
 brew install starship bat eza zoxide fzf lazygit fnm zellij direnv yazi neovim
-brew install --cask supacode ghostty
+brew tap onevcat/tap
+brew install --cask onevcat/tap/prowl ghostty
 
 # oh-my-zsh 及插件
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
@@ -100,9 +103,9 @@ cp ghostty/config ~/.config/ghostty/config
 mkdir -p ~/.config/zellij
 cp zellij/config.kdl ~/.config/zellij/config.kdl
 
-# Supacode（改完需重启应用）
-mkdir -p ~/.supacode
-cp supacode/settings.json ~/.supacode/settings.json
+# Prowl（先退出 Prowl 再拷贝，运行中改的会被它覆盖；仓库在应用里用 ⌘⇧O 添加）
+mkdir -p ~/.prowl
+cp prowl/settings.json ~/.prowl/settings.json
 
 # zsh
 cp zsh/.zshrc ~/.zshrc
@@ -134,7 +137,7 @@ cp nvim/init.lua ~/.config/nvim/init.lua
 
 ### 4. 设置默认 Shell
 
-Supacode 和 Ghostty 都启动系统登录 shell，两者本身没有 shell 配置项。切换 shell 只能通过 `chsh`：
+Prowl 和 Ghostty 都以登录 shell 启动 zsh（`ghostty/config` 里写了 `command = /bin/zsh`）。系统默认 shell 也建议通过 `chsh` 设成一致：
 
 ```bash
 chsh -s /bin/zsh          # 需要输入登录密码
@@ -145,17 +148,47 @@ dscl . -read ~/ UserShell # 验证
 
 ## 配置说明
 
-### Supacode
+### Prowl
 
-内嵌 Ghostty 终端内核，在其之上提供 git worktree 管理、tab / surface 编排与编码 Agent 集成。
+Supacode 的个人 fork（作者 onevcat），保留了「tab 里装分屏」的旧结构：
 
-- **worktree 基目录**: 按仓库配置，例如 `<repo>/.worktrees/`
-- **默认编辑器**: Zed（`defaultEditorID`）
-- **PR 合并策略**: squash
-- **归档 worktree**: 7 天后自动删除
-- **CLI**: `supacode worktree|tab|surface|repo|settings`，Claude Code 中另有 `supacode-cli` skill 可直接驱动
+```
+仓库（侧边栏） → worktree（侧边栏） → tab（顶部） → 分屏（tab 内）
+```
 
-仓库内的 `supacode/settings.json` 只保留 `global` 段，本机仓库路径与远程主机地址已剔除，导入后需自行添加仓库。
+每个 tab 有自己的一套分屏，切换 tab 时整页换成那个 tab 的分屏，不同 tab 的分屏不会混在一起。
+
+| 快捷键 | 行为 |
+|---|---|
+| `⌘T` | 新开 tab |
+| `⌘1-9` / `⌘⇧[` `]` | 切 tab |
+| `⌃1-9` / `⌘⌃↑` `↓` | 切 worktree |
+| `⌘N` / `⌘⇧O` | 新建 worktree / 添加仓库 |
+| `⌘D` / `⌘⇧D` | 右侧 / 下方分屏，分屏后自动均分（来自 `ghostty/config`） |
+| `⌘⌥方向键` | 切换分屏 |
+| `⌘⇧=` | 均分分屏 |
+| `⌘W` / `⌘⇧W` | 关闭分屏 / 关闭 tab |
+| `⌘⌥⇧F` | 放大当前分屏 |
+| `⌘P` | 命令面板 |
+| `⌘R` | 运行仓库的 Run Script |
+
+以上都是 Prowl 默认值或来自 `ghostty/config`，没有自定义快捷键覆盖。
+
+**配置文件**：
+
+- `~/.prowl/settings.json`：全局设置 + 仓库列表。仓库副本只保留 `global` 段
+- `~/.prowl/repo/<仓库目录名>-<路径 SHA-256 前 8 位>/prowl.json`：按仓库设置（Run Script、打开方式、worktree 目录）
+- 同目录的 `prowl.user.json`：按仓库的自定义命令
+
+Prowl 运行时手改 JSON 可能被它覆盖，优先用设置界面（`⌘,`）；要手改就先退出 Prowl。
+
+**主要设置**（沿用 Supacode）：默认编辑器 Zed；通知音 Hero，开启系统通知；关闭统计和崩溃上报；PR 合并方式 squash；归档的 worktree 3 天后删除；启动时恢复 tab 和分屏布局。
+
+**仓库命令**（从 Supacode 迁来，含本机路径，不进仓库）：mikasa 的 Run Script 是 `bun run dev`（`⌘R`），另有 Lint / Test / Check tailwind；recipe-notes 有 Run Website / Run Backend / Run Webapp / Deploy。它们出现在工具栏和命令面板里，在当前 worktree 里执行。Deploy 调用主目录的 `deploy/build-up.sh`：脚本会先 cd 到自身目录，所以总是部署主目录，与 Supacode 时一致。注意 Prowl 的自定义命令没有运行前确认。
+
+**tab 名**：来自终端标题。`.zshrc` 把 oh-my-zsh 空闲时的标题从 `user@host:路径` 改成了当前目录名，运行命令时显示命令名，Claude 会话里显示 Claude 的任务标题。
+
+**Claude Code 集成**：Prowl 不往 `~/.claude/settings.json` 写 hook。从 Agent Profile 启动时用 `--settings` 临时注入；手动敲 `claude` 时靠进程和屏幕内容识别状态（Blocked / Done / Working / Idle）。Prowl 没有 Agent Teams 的原生分屏，需要队友分屏时在 tab 里开 Zellij（见下方 Zellij 一节）。
 
 ### Ghostty
 
@@ -178,7 +211,7 @@ Vim 风格键位（`clear-defaults=true`），内置 tmux 兼容模式（`Ctrl+B
 
 #### Claude Code Agent Teams 集成
 
-通过 [zellij-claude-teams](https://github.com/stanislc/zellij-claude-teams) tmux shim，让 Agent Teams 在 Zellij 中自动分屏。
+通过 [zellij-claude-teams](https://github.com/stanislc/zellij-claude-teams) tmux shim，让 Agent Teams 在 Zellij 中自动分屏。在 Prowl 里需要队友分屏时，就在一个 tab 里开 Zellij 再运行 `claude`。
 
 **原理**：在 Zellij 内将假的 `tmux` 放到 PATH 前端，拦截 Claude Code 的 tmux 命令（`split-window`、`send-keys`、`kill-pane` 等）并翻译为 `zellij action` 等价操作。
 
@@ -265,7 +298,7 @@ fzf 只保留 `Ctrl+R` 搜索历史，`Ctrl+T` 与 `Alt+C` 已解绑。
 
 ### Claude Code
 
-`~/.claude/settings.json` **不再纳入版本管理**。Supacode 会往其中写入自己托管的 hook（`# supacode-managed-hook`）来同步 Agent 状态到 UI，跟踪该文件只会与 Supacode 反复冲突。插件、模型、主题等也已改为直接在应用内配置。
+`~/.claude/settings.json` **不纳入版本管理**。插件、模型、主题等都直接在应用内配置。Supacode 写入的托管 hook 和 skill（Claude Code、Codex、Pi 三处）已于 2026-10 清除；Prowl 也不写这个文件。
 
 仓库只保留一个可选的独立脚本：长任务完成后（> 3 分钟）发送 macOS 桌面通知 + Glass 提示音。
 
@@ -277,7 +310,7 @@ cp claude-code/hooks/notify-on-long-task.sh ~/.claude/hooks/
 chmod +x ~/.claude/hooks/notify-on-long-task.sh
 ```
 
-启用方式：在 `~/.claude/settings.json` 的 `hooks.Stop` 中追加一条 `~/.claude/hooks/notify-on-long-task.sh`，注意保留 Supacode 已有的条目。
+启用方式：在 `~/.claude/settings.json` 的 `hooks.Stop` 中追加一条 `~/.claude/hooks/notify-on-long-task.sh`。Prowl 本身已有 Agent 完成通知，一般不需要再开。
 
 ## 许可
 
