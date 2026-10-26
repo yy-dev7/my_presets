@@ -30,6 +30,7 @@ Pastel Powerline 风格提示符，支持 Git 状态、语言版本检测、命�
 | 目录跳转 | [zoxide](https://github.com/ajeetdsouza/zoxide) | 0.9.8 |
 | 模糊搜索 | [fzf](https://github.com/junegunn/fzf) | 0.70.0 |
 | Git TUI | [lazygit](https://github.com/jesseduffield/lazygit) | 0.60.0 |
+| Diff 查看 | [Hunk](https://hunk.dev/) | 0.24.1 |
 | 文件管理 | [yazi](https://yazi-rs.github.io/) | 26.9.1 |
 | 编辑器 | [Neovim](https://neovim.io/) | 0.12.5 |
 | Node 管理 | [fnm](https://github.com/Schniz/fnm) | - |
@@ -59,6 +60,8 @@ Pastel Powerline 风格提示符，支持 Git 状态、语言版本检测、命�
 │   └── starship.toml       # Starship 提示符配置
 ├── bat/
 │   └── config              # bat 配置
+├── hunk/
+│   └── config.toml         # Hunk 配置（Prowl 的 Show Diff 用它）
 ├── yazi/
 │   ├── keymap.toml         # yazi 键位覆盖（Enter/e/T）
 │   └── package.toml        # yazi 插件清单（toggle-pane）
@@ -79,7 +82,7 @@ Pastel Powerline 风格提示符，支持 Git 状态、语言版本检测、命�
 ### 1. 安装依赖
 
 ```bash
-brew install starship bat eza zoxide fzf lazygit fnm zellij direnv yazi neovim
+brew install starship bat eza zoxide fzf lazygit fnm zellij direnv yazi neovim hunk
 brew tap onevcat/tap
 brew install --cask onevcat/tap/prowl ghostty
 
@@ -121,6 +124,10 @@ cp starship/starship.toml ~/.config/starship.toml
 # bat
 mkdir -p ~/.config/bat
 cp bat/config ~/.config/bat/config
+
+# Hunk
+mkdir -p ~/.config/hunk
+cp hunk/config.toml ~/.config/hunk/config.toml
 
 # yazi（package.toml 记录插件版本，拷贝后执行 ya pkg install 拉取插件）
 mkdir -p ~/.config/yazi
@@ -184,7 +191,7 @@ Supacode 的个人 fork（作者 onevcat），保留了「tab 里装分屏」的
 
 Prowl 运行时手改 JSON 可能被它覆盖，优先用设置界面（`⌘,`）；要手改就先退出 Prowl。
 
-**主要设置**（沿用 Supacode）：默认编辑器 Zed；通知音 Hero，开启系统通知；关闭统计和崩溃上报；PR 合并方式 squash；归档的 worktree 3 天后删除；启动时恢复 tab 和分屏布局。
+**主要设置**（沿用 Supacode）：默认编辑器 Zed；通知音 Hero，开启系统通知；关闭统计和崩溃上报；PR 合并方式 squash；归档的 worktree 3 天后删除；启动时恢复 tab 和分屏布局。Diff Tool 设为 Hunk（见下方 Hunk 一节）。窗口着色（Tint nav & toolbar）设为 None：侧栏和工具栏直接透出终端背景色 `#292A3A`，切换仓库时外观不变；仓库颜色只用于侧栏图标和名称。
 
 **仓库命令**（从 Supacode 迁来，含本机路径，不进仓库）：mikasa 的 Run Script 是 `bun run dev`（`⌘R`），另有 Lint / Test / Check tailwind；recipe-notes 有 Run Website / Run Backend / Run Webapp / Deploy。它们出现在工具栏和命令面板里，在当前 worktree 里执行。Deploy 调用主目录的 `deploy/build-up.sh`：脚本会先 cd 到自身目录，所以总是部署主目录，与 Supacode 时一致。注意 Prowl 的自定义命令没有运行前确认。
 
@@ -255,6 +262,16 @@ cp zellij/activate.sh ~/.local/share/zellij-tmux-shim/activate.sh
 `EDITOR` 为 Neovim，`vi` / `vim` 均已别名到 `nvim`，SSH 会话仍走系统 vim。Neovim 读的是 `~/.config/nvim/init.lua`，不会加载 `~/.vimrc`，因此该文件把 `~/.vim` 追加进 `runtimepath`，直接复用 `~/.vim/colors/catppuccin_mocha.vim`，配色文件只需维护一份。
 
 `init.lua` 不依赖任何插件管理器，只对齐 `.vimrc` 的三个选项并补了一批常用默认值（行号、`expandtab` 2 空格、智能大小写搜索、`undofile`、系统剪贴板、鼠标、`scrolloff`），leader 键设为空格。需要 LSP、treesitter 时再引入 lazy.nvim。
+
+### Hunk
+
+终端里的 diff 查看器，主打审查 agent 写的改动。Prowl 的 Diff Tool（`⌘,` → General）设为 Hunk 后，点 worktree 的 diff 角标或按 `⌘⇧Y`，会新开一个 tab 在该 worktree 里运行 `hunk diff`（工作区对比 HEAD，含未跟踪文件）。`⌘⌥⇧Y` 的 Outgoing Changes 不受这个设置影响，始终用 Prowl 自带窗口。
+
+配置只改了两项：主题 `catppuccin-mocha`，与 bat / Vim / Neovim 一致；`transparent_background = true`，透出 Ghostty 的背景色。没有在配置里开 `watch`：开了以后 `hunk diff | cat` 这类非交互调用会直接报错。agent 继续改文件时按 `r` 手动刷新。
+
+常用键：`j` `k` 上下移动，`[` `]` 切换 hunk，`,` `.` 切换文件，`0` / `2` 切换自动 / 分栏布局，`e` 用 `$EDITOR` 打开当前文件，`t` 选主题，`?` 查看全部快捷键，`q` 退出。
+
+git 的 pager 仍是 delta，Hunk 只在 Prowl 里按需打开。
 
 ### yazi
 

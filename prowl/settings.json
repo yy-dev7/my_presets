@@ -27,7 +27,7 @@
     "dimUnfocusedSplits": true,
     "dockBounceMode": "off",
     "externalDiffCustomCommand": "",
-    "externalDiffToolID": "built-in",
+    "externalDiffToolID": "hunk",
     "fetchOriginBeforeWorktreeCreation": true,
     "githubIntegrationEnabled": true,
     "inAppNotificationsEnabled": true,
@@ -57,7 +57,7 @@
       "green": 0.5333333611488342,
       "red": 0
     },
-    "windowTintMode": "repositoryColor"
+    "windowTintMode": "none"
   },
   "pinnedWorktreeIDs": [],
   "repositories": {},

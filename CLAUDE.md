@@ -14,6 +14,7 @@
 - **提示符**: [Starship](https://starship.rs/)
 - **文件管理**: yazi 26.9.1（`y` 函数启动，退出时切换目录）
 - **编辑器**: Neovim 0.12.5（`EDITOR` / `VISUAL`，`vi` `vim` 均别名到 `nvim`；SSH 会话回退系统 vim）
+- **Diff 查看**: Hunk 0.24.1（Prowl 的 Diff Tool，`⌘⇧Y` 新开 tab 跑 `hunk diff`；git pager 仍是 delta）
 - **历史**: zsh → fish → zsh（2026-09 迁回 zsh，fish 配置已从仓库移除，可从 git 历史找回）；终端 Supacode → cmux → Prowl（2026-10：Supacode 0.11 和 cmux 都是「分屏里装 tab」，用户要的是「tab 里装分屏」。Supacode 配置已从仓库移除，可从 git 历史找回；cmux 配置没提交过，本机的也已删除）
 
 ## 配置文件位置
@@ -26,6 +27,7 @@
 - Starship 配置: `~/.config/starship.toml`
 - yazi 配置: `~/.config/yazi/keymap.toml`、`package.toml`（插件清单，`ya pkg install` 还原）
 - Neovim 配置: `~/.config/nvim/init.lua`；Vim 配置: `~/.vimrc`、`~/.vim/colors/`
+- Hunk 配置: `~/.config/hunk/config.toml`
 
 ## 工作流程
 
@@ -43,6 +45,7 @@
 - yazi 键位改 `~/.config/yazi/keymap.toml`，重启 yazi 生效；命令模板占位符是 `%s`（选中文件）/ `%h`（悬停文件），不是 `$@`
 - yazi 插件用 `ya pkg add|upgrade|install` 管理，版本锁在 `package.toml`
 - Neovim 无插件管理器，`init.lua` 把 `~/.vim` 追加进 `runtimepath` 复用 Vim 的 Catppuccin 配色，配色只维护 `vim/catppuccin_mocha.vim` 一份
+- Hunk 配置不要开 `watch = true`：它对所有调用生效，非交互（管道、重定向）的 `hunk diff` 会报 `--watch requires an interactive output terminal`；需要时按 `r` 刷新或单次加 `--watch`
 
 ## 注意事项
 
@@ -56,5 +59,6 @@
 - zsh 启动时如果检测到 `$ZELLIJ` 环境变量，会自动 source `activate.sh` 激活 tmux shim
 - 仓库里的 `prowl/settings.json` 只保留 `global` 段，`repositoryRoots` / `repositories` 置空；按仓库的设置和自定义命令（`~/.prowl/repo/…`）含本机路径，不进仓库
 - `~/.claude/settings.json` 不纳入版本管理。Supacode 的托管 hook 和 skill（`~/.claude`、`~/.codex`、`~/.pi/agent` 三处）已于 2026-10 清除；Prowl 也不写这个文件（Agent Profile 启动时用 `--settings` 临时注入 hook，手动敲 `claude` 靠进程和屏幕识别状态）。仓库仅保留可选的 `claude-code/hooks/notify-on-long-task.sh`
+- Prowl 窗口着色 `windowTintMode` 保持 `none`：Ghostty 背景不透明时，Prowl 用终端背景色（`#292A3A`）作窗口底色，侧栏玻璃透出它；`repositoryColor` 会在侧栏和工具栏上叠一层色带（有仓库颜色时 20%，没有时 10% 的白），侧栏就和终端背景对不上，而且每个仓库都不一样
 - yazi 覆盖了三个键：`Enter` 改为只进目录（默认的 `open` 会用 `$EDITOR` 把目录打开成 netrw），`e` 用 `$EDITOR` 编辑，`T` 由 toggle-pane 插件最大化预览栏
 - 敏感凭据（GITHUB_TOKEN 等）不要硬编码进 `~/.zshrc`，仓库内副本已脱敏

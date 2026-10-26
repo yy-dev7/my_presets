@@ -1,0 +1,9 @@
+# Hunk 终端 diff 查看器。Prowl 的 Diff Tool 设为 Hunk 后，Show Diff（⌘⇧Y）会新开 tab 运行 `hunk diff`
+# 全部选项见 https://hunk.dev/docs/reference/config/
+
+# 与 bat / Vim / Neovim 统一用 Catppuccin Mocha
+theme = "catppuccin-mocha"
+# 透出 Ghostty 的 #292A3A 背景，不再叠一层主题底色
+transparent_background = true
+
+# 不开 watch：写进配置后，`hunk diff | cat` 这类非交互调用会直接报错。需要刷新时按 r
