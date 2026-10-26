@@ -59,6 +59,9 @@ keybind = cmd+shift+d=new_split:down
 keybind = chain=equalize_splits
 keybind = cmd+w=close_surface
 keybind = cmd+shift+equal=equalize_splits
+# 关闭分屏后不会自动均分，按 ⌘⇧= 手动均分（也可双击分隔线）
+# Prowl「增大字号」菜单取最后一个 increase_font_size 绑定（默认 ⌘+），且把 ⌘+ 当成 ⌘⇧=，会抢走均分；重绑 ⌘= 让菜单改用 ⌘=
+keybind = cmd+==increase_font_size:1
 keybind = cmd+alt+left=goto_split:left
 keybind = cmd+alt+right=goto_split:right
 keybind = cmd+alt+up=goto_split:top

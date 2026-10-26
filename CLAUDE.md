@@ -37,6 +37,9 @@
 - Prowl 字段说明在官方文档 `docs/reference/settings-fields.md`，快捷键在 `docs/reference/keyboard-shortcuts.md`；也可让 Prowl 内的 Help → Ask Agent About Prowl 给出文档
 - Prowl CLI 在 `/Applications/Prowl.app/Contents/Resources/prowl-cli/prowl`（未装到 PATH），`prowl list` 只列出开着终端的 worktree
 - 分屏键位（`new_split`、`equalize_splits`、`goto_split`）来自 Ghostty 配置；与 Prowl 应用快捷键冲突的 Ghostty 键会被 Prowl 自动解绑
+- Prowl 关闭分屏只把节点摘出分屏树，剩下的保持原比例，没有自动均分的设置；`close_surface` 后 `chain=equalize_splits` 也无效（⌘W 走菜单，且均分作用在已关闭的 pane 上）
+- Prowl 的 Terminal 菜单（字号、关闭等）用 Ghostty 最后一个同 action 绑定作菜单键，终端里命中 Ghostty 绑定时菜单先匹配，且 `⌘+` 等同 `⌘⇧=`。所以 `ghostty/config` 重绑了 `cmd+==increase_font_size:1`，避免「增大字号 ⌘+」抢走 `⌘⇧=` 均分。加新键位前先用 System Events 读 `ProwlApp` 菜单的 `AXMenuItemCmdChar` 查冲突
+- 改完 Ghostty 配置用 Prowl 设置 → General → Terminal Config → Reload 重载；`⌘⇧,`（Ghostty 的 `reload_config`）不带 Prowl 的快捷键覆盖层，实测没让菜单刷新
 - Ghostty 配置采用 key-value 格式，每行一个配置项
 - 可通过 `ghostty +show-config` 查看当前生效配置
 - 可通过 `ghostty +list-themes` / `ghostty +list-fonts` 查看可用主题与字体
