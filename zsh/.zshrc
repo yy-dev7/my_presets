@@ -180,7 +180,6 @@ export GOOGLE_APPLICATION_CREDENTIALS="/Users/windseeker/.claude-vertex/tencent-
 # --- PATH 补充 ---
 export PATH="$HOME/.cargo/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
-export PATH="$PATH:$HOME/.antigravity/antigravity/bin"
 
 # --- Claude Code 连接中断自动恢复 ---
 export CLAUDE_CODE_AUTO_RESUME_ON_DROP=1
